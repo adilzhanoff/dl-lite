@@ -59,3 +59,25 @@ class Database:
                 )
                 """
             )
+
+    def get_courses(self, tchr):
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            courses = cur.execute(
+                """
+                PRAGMA table_info(""" + f"{tchr.name}_{tchr.surname}_t" + """)
+                """
+            ).fetchall()
+        courses = [col[1] for col in courses[1:]]
+        return courses
+
+    def push_course(self, usr, name):
+        if not isinstance(usr, Student):
+            with sql.connect(self.__db_name) as self.__db:
+                cur = self.__db.cursor()
+                cur.execute(
+                    """
+                    ALTER TABLE `""" + f"{usr.name}_{usr.surname}_t" +
+                    """` ADD `""" + f"{name}" + """` real
+                    """
+                )

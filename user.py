@@ -1,5 +1,5 @@
 class User:
-    def __init__(self, name, surname, subjects={}, grades={}):
+    def __init__(self, name, surname, subjects=[], grades={}):
         self.__name = name
         self.__surname = surname
         self.__subjects = subjects

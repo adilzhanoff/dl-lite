@@ -48,7 +48,12 @@ class Menu:
             if key == "in":
                 print("You are logged in.")
                 self.__cur_user = temp
-                # TODO show menu function
+                if isinstance(self.__cur_user, Teacher):
+                    self.menu_teacher()
+                    self.run()
+                else:
+                    # TODO menu student
+                    pass
             # signging up
             elif key == "up":
                 print("Such user has already been registered.")
@@ -63,3 +68,60 @@ class Menu:
             elif key == "up":
                 self.__data.push_user(temp)
                 self.run()
+
+    def menu_teacher(self):
+        print(f"Welcome, {self.__cur_user.name}!")
+        choice = ''
+        while all(
+            [choice != str(i)
+             for i in range(1, 8)]
+        ):
+            choice = input(
+                "1 - Add a new course\n" +
+                "2 - See courses you lead\n" +
+                "3 - Mark student(s)\n" +
+                "4 - Add student(s) to course\n" +
+                "5 - Remove student(s) from course\n" +
+                "6 - See the stastics\n" +
+                "7 - Log out\n"
+            )
+
+        if choice == '1':
+            self.add_course()
+            self.menu_teacher()
+        elif choice == '2':
+            self.show_courses(self.__cur_user)
+            self.menu_teacher()
+        elif choice == '3':
+            pass
+        elif choice == '4':
+            pass
+        elif choice == '5':
+            pass
+        elif choice == '6':
+            pass
+        elif choice == '7':
+            pass
+
+    def add_course(self):
+        self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
+
+        while True:
+            name = input("Enter course name: ").lower()
+            if name in self.__cur_user.subjects and name != "name":
+                print("Such course already exists.")
+            else:
+                self.__cur_user.subjects.append(name)
+                self.__data.push_course(self.__cur_user, name)
+                print(
+                    f"{name.capitalize()} course has been succesfully added."
+                )
+                break
+
+    def show_courses(self, usr):
+        if isinstance(usr, Teacher):
+            self.__cur_user.subjects = self.__data.get_courses(
+                self.__cur_user
+            )
+            for i, sub in enumerate(self.__cur_user.subjects):
+                print(i + 1, sub, sep=" - ")
