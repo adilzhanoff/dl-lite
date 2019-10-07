@@ -50,24 +50,63 @@ class Menu:
                 self.__cur_user = temp
                 if isinstance(self.__cur_user, Teacher):
                     self.menu_teacher()
-                    self.run()
                 else:
-                    # TODO menu student
-                    pass
+                    self.menu_student()
             # signging up
             elif key == "up":
                 print("Such user has already been registered.")
-                self.run()
+            self.run()
         else:
             # doesn't exist,
             # logging in
             if key == "in":
                 print("Such user has not been found.")
-                self.run()
             # signing up
             elif key == "up":
                 self.__data.push_user(temp)
-                self.run()
+            self.run()
+
+    def menu_student(self):
+        print(f"Welcome, {self.__cur_user.name}!")
+        choice = ''
+        while all(
+            choice != str(i)
+            for i in range(1, 5)
+        ):
+            choice = input(
+                "1 - View status\n" +
+                "2 - My Teachers\n" +
+                "3 - Enroll a new course\n" +
+                "4 - Log Out\n"
+            )
+        if choice == '1':
+            pass
+        elif choice == '2':
+            pass
+        elif choice == '3':
+            self.enroll()
+            self.menu_student()
+        elif choice == '4':
+            pass
+
+    def enroll(self):
+        self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
+        all_courses = self.__data.all_courses()
+        to_enroll = tuple(set(all_courses) - set(self.__cur_user.subjects))
+
+        for i, sub in enumerate(to_enroll):
+            print(i, ' '.join(sub[0].split('_')).capitalize(), sep=" - ")
+
+        idx = ''
+        while all(
+            str(i) != idx
+            for i in range(len(to_enroll))
+
+        ):
+            idx = input("Enter course ID to enroll: ")
+
+        self.__cur_user.subjects.append(to_enroll[int(idx)])
+        self.__data.push_course(self.__cur_user, to_enroll[int(idx)][0])
 
     def menu_teacher(self):
         print(f"Welcome, {self.__cur_user.name}!")
@@ -107,7 +146,7 @@ class Menu:
         self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
 
         while True:
-            name = input("Enter course name: ").lower()
+            name = '_'.join(input("Enter the course name: ").lower().split())
             if name in self.__cur_user.subjects and name != "name":
                 print("Such course already exists.")
             else:
