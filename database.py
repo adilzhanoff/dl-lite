@@ -1,7 +1,6 @@
 import sqlite3 as sql
 from user import User
 from student import Student
-import os
 
 
 class Database:
@@ -15,6 +14,7 @@ class Database:
                 """
                 CREATE TABLE IF NOT EXISTS all_courses (
                     Name text,
+                    Task text,
                     UNIQUE(Name)
                 )
                 """
@@ -101,7 +101,7 @@ class Database:
             cur = self.__db.cursor()
             courses = cur.execute(
                 """
-                SELECT * FROM all_courses
+                SELECT Name FROM all_courses
                 """
             ).fetchall()
         return courses
@@ -364,3 +364,33 @@ class Database:
             ).fetchall()
             grades = dict(grades)
             return grades
+
+    def set_desc(self, tchr, course, txt):
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            cur.execute(
+                """
+                UPDATE
+                    all_courses
+                SET
+                    Task = '""" +
+                txt + """'
+                WHERE
+                    Name = """ +
+                f"'{tchr.surname}_{tchr.name}_{course}'"
+            )
+
+    def get_tasks(self, course):
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            tasks = cur.execute(
+                """
+                SELECT
+                    Task
+                FROM
+                    all_courses
+                WHERE
+                    Name = '""" +
+                course + """'"""
+            ).fetchall()
+            return tasks

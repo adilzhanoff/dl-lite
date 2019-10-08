@@ -1,6 +1,7 @@
 from student import Student
 from teacher import Teacher
 from database import Database
+from editor import Editor
 import pandas as pd
 
 
@@ -12,6 +13,7 @@ class Menu:
     def __init__(self):
         self.__data = Database()
         self.__cur_user = None
+        self.__edit = Editor()
 
     def run(self):
         choice = ''
@@ -71,13 +73,14 @@ class Menu:
         print(f"Welcome, {self.__cur_user.name}!")
         choice = ''
         while all(
-            [choice != str(i) for i in range(1, 5)]
+            [choice != str(i) for i in range(1, 6)]
         ):
             choice = input(
                 "1 - View status\n" +
                 "2 - My Teachers\n" +
                 "3 - Enroll a new course\n" +
-                "4 - Log Out\n"
+                "4 - View my tasks\n"
+                "5 - Log Out\n"
             )
 
         if choice == '1':
@@ -90,6 +93,9 @@ class Menu:
             self.enroll()
             self.menu_student()
         elif choice == '4':
+            self.view_tasks()
+            self.menu_student()
+        elif choice == '5':
             pass
 
     def view_status(self):
@@ -138,11 +144,28 @@ class Menu:
         self.__cur_user.subjects.append(to_enroll[int(idx)])
         self.__data.push_course(self.__cur_user, to_enroll[int(idx)][0])
 
+    def view_tasks(self):
+        self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
+
+        for i, sub in enumerate(self.__cur_user.subjects):
+            print(i + 1, sub[0], sep=" - ")
+
+        idx = ''
+        while all(
+            [str(j) != idx for j in range(1, i + 2)]
+        ):
+            idx = input("Enter course ID: ")
+
+        task = self.__data.get_tasks(
+            self.__cur_user.subjects[int(idx) - 1][0]
+        )[0][0]
+        print(task)
+
     def menu_teacher(self):
         print(f"Welcome, {self.__cur_user.name}!")
         choice = ''
         while all(
-            [choice != str(i) for i in range(1, 8)]
+            [choice != str(i) for i in range(1, 9)]
         ):
             choice = input(
                 "1 - Add a new course\n" +
@@ -150,15 +173,18 @@ class Menu:
                 "3 - Mark student(s)\n" +
                 "4 - Add student(s) to course\n" +
                 "5 - Remove student(s) from course\n" +
-                "6 - See the stastics\n" +
-                "7 - Log out\n"
+                "6 - Home assignment\n" +
+                "7 - See the statistics\n" +
+                "8 - Log out\n"
+                # TODO home tasks
+                # TODO in-terminal code editor
             )
 
         if choice == '1':
             self.add_course()
             self.menu_teacher()
         elif choice == '2':
-            self.show_courses(self.__cur_user)
+            self.show_courses()
             self.menu_teacher()
         elif choice == '3':
             self.mark_student()
@@ -170,9 +196,12 @@ class Menu:
             self.remove_student()
             self.menu_teacher()
         elif choice == '6':
-            self.show_stat()
+            self.home_task()
             self.menu_teacher()
         elif choice == '7':
+            self.show_stat()
+            self.menu_teacher()
+        elif choice == '8':
             pass
 
     def add_course(self):
@@ -190,11 +219,10 @@ class Menu:
                 )
                 break
 
-    def show_courses(self, usr):
-        if isinstance(usr, Teacher):
-            self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
-            for i, sub in enumerate(self.__cur_user.subjects):
-                print(i + 1, sub, sep=" - ")
+    def show_courses(self):
+        self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
+        for i, sub in enumerate(self.__cur_user.subjects):
+            print(i + 1, sub, sep=" - ")
 
     def mark_student(self):
         self.__cur_user.grades = self.__data.get_stat(self.__cur_user)
@@ -316,6 +344,38 @@ class Menu:
                 print("No students attend this course.")
         else:
             print("You lead no courses, add some through menu.")
+
+    def home_task(self):
+        self.show_courses()
+
+        idx = ''
+        while all(
+            [str(j) != idx for j in range(
+                1, len(self.__cur_user.subjects) + 1
+            )]
+        ):
+            idx = input("Enter course ID: ")
+
+        choice = ''
+        while '1' != choice != '2':
+            choice = input(
+                "1 - Add new hometask\n" +
+                "2 - View students' work\n"
+            )
+        if choice == '1':
+            self.__cur_user.tasks = dict.fromkeys(
+                self.__cur_user.subjects, "In-class assignment"
+            )
+            desc = input("Enter hometask desciption: ")
+            self.__cur_user.tasks[
+                self.__cur_user.subjects[int(idx) - 1]
+            ] = desc
+
+            self.__data.set_desc(
+                self.__cur_user, self.__cur_user.subjects[int(idx) - 1], desc
+            )
+        elif choice == '2':
+            pass
 
     def show_stat(self):
         self.__cur_user.grades = self.__data.get_stat(self.__cur_user)
