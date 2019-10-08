@@ -1,1 +1,1 @@
-Basic student assesing/course adding app in CMD.
+Basic student assessing/course adding app in CMD.
