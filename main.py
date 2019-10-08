@@ -1,5 +1,4 @@
 from menu import Menu
-from student import Student
 
 
 def main():
