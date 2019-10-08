@@ -28,7 +28,7 @@ class Menu:
 
     def auth_user(self, key="in"):
         """
-        'key' - defines current proccess
+        'key' - defines now proccess
             "in" - for logging in
             "up" - for signing up
         """
@@ -70,8 +70,7 @@ class Menu:
         print(f"Welcome, {self.__cur_user.name}!")
         choice = ''
         while all(
-            choice != str(i)
-            for i in range(1, 5)
+            choice != str(i) for i in range(1, 5)
         ):
             choice = input(
                 "1 - View status\n" +
@@ -82,12 +81,31 @@ class Menu:
         if choice == '1':
             pass
         elif choice == '2':
-            pass
+            self.show_teachers()
+            self.menu_student()
         elif choice == '3':
             self.enroll()
             self.menu_student()
         elif choice == '4':
             pass
+
+    def show_teachers(self):
+        self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
+        tchrs = self.__cur_user.subjects
+        if tchrs != []:
+            tchrs = [
+                ' '.join(elem[0].split('_')[:2]) for elem in tchrs
+            ]
+            tchrs = {
+                each[:each.index(' ')].capitalize() +
+                ' ' + each[each.index(' ') + 1:].capitalize()
+                for each in tchrs
+            }
+            print("My Teachers: ")
+            for i, tchr in enumerate(tchrs):
+                print(i + 1, tchr, sep=" - ")
+        else:
+            print("Your teacher list is empty.")
 
     def enroll(self):
         self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
@@ -99,8 +117,7 @@ class Menu:
 
         idx = ''
         while all(
-            str(i) != idx
-            for i in range(len(to_enroll))
+            str(i) != idx for i in range(len(to_enroll))
 
         ):
             idx = input("Enter course ID to enroll: ")
@@ -112,8 +129,7 @@ class Menu:
         print(f"Welcome, {self.__cur_user.name}!")
         choice = ''
         while all(
-            [choice != str(i)
-             for i in range(1, 8)]
+            choice != str(i) for i in range(1, 8)
         ):
             choice = input(
                 "1 - Add a new course\n" +
@@ -132,13 +148,15 @@ class Menu:
             self.show_courses(self.__cur_user)
             self.menu_teacher()
         elif choice == '3':
-            pass
+            self.menu_student()
         elif choice == '4':
-            pass
+            self.add_student()
+            self.menu_teacher()
         elif choice == '5':
-            pass
+            self.remove_student()
+            self.menu_teacher()
         elif choice == '6':
-            pass
+            self.menu_teacher()
         elif choice == '7':
             pass
 
@@ -159,8 +177,83 @@ class Menu:
 
     def show_courses(self, usr):
         if isinstance(usr, Teacher):
-            self.__cur_user.subjects = self.__data.get_courses(
-                self.__cur_user
-            )
+            self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
             for i, sub in enumerate(self.__cur_user.subjects):
                 print(i + 1, sub, sep=" - ")
+
+    def add_student(self):
+        self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
+
+        if self.__cur_user.subjects != []:
+            for i, sub in enumerate(self.__cur_user.subjects):
+                print(i, sub, sep=" - ")
+
+            idx = ''
+            while all(
+                str(j) != idx for j in range(i + 1)
+            ):
+                idx = input("Enter course ID: ")
+
+            course = self.__cur_user.subjects[int(idx)]
+            new = tuple(self.__data.new_students(self.__cur_user, course))
+
+            if new != ():
+                for i, stud in enumerate(new):
+                    print(i, stud, sep=" - ")
+
+                idx = ''
+                while all(
+                    str(j) != idx for j in range(i + 1)
+                ):
+                    idx = input("Enter student ID to add: ")
+
+                self.__data.push_student(
+                    self.__cur_user,
+                    new[int(idx)][:new[int(idx)].index('_')],
+                    new[int(idx)][new[int(idx)].index('_') + 1:],
+                    course
+                )
+            else:
+                print("No new students to add for this course.")
+        else:
+            print("You lead no courses, add some through menu.")
+
+    def remove_student(self):
+        self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
+
+        if self.__cur_user.subjects != []:
+            for i, sub in enumerate(self.__cur_user.subjects):
+                print(i, sub, sep=" - ")
+
+            idx = ''
+            while all(
+                str(j) != idx for j in range(i + 1)
+            ):
+                idx = input("Enter course ID: ")
+
+            course = self.__cur_user.subjects[int(idx)]
+            now = tuple(self.__data.new_students(
+                self.__cur_user, course,
+                key=False
+            ))
+
+            if now != ():
+                for i, stud in enumerate(now):
+                    print(i, stud, sep=" - ")
+
+                idx = ''
+                while all(
+                    str(j) != idx for j in range(i + 1)
+                ):
+                    idx = input("Enter student ID: ")
+
+                self.__data.pop_student(
+                    self.__cur_user,
+                    now[int(idx)][:now[int(idx)].index('_')],
+                    now[int(idx)][now[int(idx)].index('_') + 1:],
+                    course
+                )
+            else:
+                print("No students attend this course.")
+        else:
+            print("You lead no courses, add some through menu.")

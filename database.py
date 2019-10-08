@@ -168,9 +168,9 @@ class Database:
                     """
                     UPDATE """ +
                     tchr_name +
-                    """ SET """ +
+                    """ SET '""" +
                     course +
-                    """ = 0 WHERE Name = '""" +
+                    """' = 0 WHERE Name = '""" +
                     f"{usr.surname}_{usr.name}'"
                 )
                 cur.execute(
@@ -181,6 +181,121 @@ class Database:
                     name + """', 0)
                     """
                 )
+
+    def new_students(self, usr, name, key=True):
+        """
+        if key = True, returns students that can be enrolled
+        on course 'name' of teacher 'usr'
+        else, returns students that attend
+        the 'name' course of the teacher 'usr'
+        """
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            students = cur.execute(
+                """
+                SELECT
+                    Name
+                FROM
+                    """ +
+                f"{usr.surname}_{usr.name}_t" +
+                """ WHERE `""" +
+                name + """` IS NOT NULL"""
+            ).fetchall()
+            students = {
+                elem[0] for elem in students
+            }
+            all_students = cur.execute(
+                """
+                SELECT
+                    *
+                FROM
+                    all_students
+                """
+            ).fetchall()
+            all_students = {
+                elem[0] for elem in all_students
+            }
+            if key:
+                return all_students - students
+            else:
+                return students
+
+    def push_student(self, tchr, surname, name, course):
+        """
+        adds student with 'surname' and 'name'
+        to the 'course' of the 'tchr'
+        """
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            cur.execute(
+                """
+                INSERT OR IGNORE INTO """ +
+                f"{tchr.surname}_{tchr.name}_t" +
+                """ (Name) VALUES ('""" +
+                f"{surname}_{name}" +
+                """')"""
+            )
+            cur.execute(
+                """
+                INSERT OR IGNORE INTO """ +
+                f"{surname}_{name}_s" +
+                """ (Course, Grade)
+                VALUES (""" +
+                f"'{tchr.surname}_{tchr.name}_{course}'" + """, 0)"""
+            )
+            cur.execute(
+                """
+                UPDATE """ +
+                f"{tchr.surname}_{tchr.name}_t" +
+                """ SET '""" +
+                course + """' = 0
+                WHERE Name = '""" +
+                f"{surname}_{name}'"
+            )
+
+    def course_students(self, tchr, course):
+        """
+        returns all students attending
+        the 'course' of 'tchr'
+        """
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            students = cur.execute(
+                """
+                SELECT
+                    Name
+                FROM
+                    """ +
+                f"{tchr.surname}_{tchr.name}_t" +
+                """ WHERE `""" +
+                course + """` IS NOT NULL
+                """
+            )
+
+    def pop_student(self, tchr, surname, name, course):
+        """
+        removes student with 'surname' and 'name'
+        from the 'course' of the 'tchr'
+        """
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            cur.execute(
+                """
+                UPDATE """ +
+                f"{tchr.surname}_{tchr.name}_t" +
+                """ SET `""" +
+                course +
+                """` = NULL
+                WHERE Name = '""" +
+                f"{surname}_{name}'"
+            )
+            cur.execute(
+                """
+                DELETE FROM """ +
+                f"{surname}_{name}_s" +
+                """ WHERE Course = '""" +
+                f"{tchr.surname}_{tchr.name}_{course}'"
+            )
 
     def update_student(std):
         pass
