@@ -1,6 +1,7 @@
 from student import Student
 from teacher import Teacher
 from database import Database
+import pandas as pd
 
 
 class Menu:
@@ -70,7 +71,7 @@ class Menu:
         print(f"Welcome, {self.__cur_user.name}!")
         choice = ''
         while all(
-            choice != str(i) for i in range(1, 5)
+            [choice != str(i) for i in range(1, 5)]
         ):
             choice = input(
                 "1 - View status\n" +
@@ -78,8 +79,10 @@ class Menu:
                 "3 - Enroll a new course\n" +
                 "4 - Log Out\n"
             )
+
         if choice == '1':
-            pass
+            self.view_status()
+            self.menu_student()
         elif choice == '2':
             self.show_teachers()
             self.menu_student()
@@ -88,6 +91,15 @@ class Menu:
             self.menu_student()
         elif choice == '4':
             pass
+
+    def view_status(self):
+        self.__cur_user.grades = self.__data.get_grades(self.__cur_user)
+        grades = self.__cur_user.grades.copy()
+        grades = ((k, v) for k, v in grades.items())
+        table = pd.DataFrame(
+            grades, columns=("Course", "Grade"), index=(1, 2)
+        ).T
+        print(table.T)
 
     def show_teachers(self):
         self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
@@ -117,7 +129,7 @@ class Menu:
 
         idx = ''
         while all(
-            str(i) != idx for i in range(len(to_enroll))
+            [str(i) != idx for i in range(len(to_enroll))]
 
         ):
             idx = input("Enter course ID to enroll: ")
@@ -129,7 +141,7 @@ class Menu:
         print(f"Welcome, {self.__cur_user.name}!")
         choice = ''
         while all(
-            choice != str(i) for i in range(1, 8)
+            [choice != str(i) for i in range(1, 8)]
         ):
             choice = input(
                 "1 - Add a new course\n" +
@@ -148,7 +160,8 @@ class Menu:
             self.show_courses(self.__cur_user)
             self.menu_teacher()
         elif choice == '3':
-            self.menu_student()
+            self.mark_student()
+            self.menu_teacher()
         elif choice == '4':
             self.add_student()
             self.menu_teacher()
@@ -156,6 +169,7 @@ class Menu:
             self.remove_student()
             self.menu_teacher()
         elif choice == '6':
+            self.show_stat()
             self.menu_teacher()
         elif choice == '7':
             pass
@@ -181,6 +195,51 @@ class Menu:
             for i, sub in enumerate(self.__cur_user.subjects):
                 print(i + 1, sub, sep=" - ")
 
+    def mark_student(self):
+        self.__cur_user.grades = self.__data.get_stat(self.__cur_user)
+        grades = self.__cur_user.grades.copy()
+
+        if any(
+            [grades[key] != {}
+             for key in grades]
+        ):
+            for i, sub in enumerate(grades.keys()):
+                print(i, sub, sep=" - ")
+
+            idx = ''
+            while all(
+                [str(j) != idx for j in range(i + 1)]
+            ):
+                idx = input("Enter course ID: ")
+
+            course = tuple(grades.keys())[int(idx)]
+            info = grades[course]
+            for i, stud in enumerate(info):
+                if info[stud] is not None:
+                    print(i, stud, sep=" - ")
+
+            jdx = ''
+            while all(
+                [str(j) != jdx for j in range(i + 1)]
+            ):
+                jdx = input("Enter student ID: ")
+
+            while True:
+                try:
+                    mark = float(input("Enter new mark: "))
+                    break
+                except ValueError:
+                    print("Incorrect mark entered, try again!")
+
+            init = tuple(info.keys())[int(jdx)]
+            surname = init[:init.index('_')]
+            name = init[init.index('_') + 1:]
+
+            self.__data.set_mark(
+                self.__cur_user, surname,
+                name, course, mark
+            )
+
     def add_student(self):
         self.__cur_user.subjects = self.__data.get_courses(self.__cur_user)
 
@@ -190,7 +249,7 @@ class Menu:
 
             idx = ''
             while all(
-                str(j) != idx for j in range(i + 1)
+                [str(j) != idx for j in range(i + 1)]
             ):
                 idx = input("Enter course ID: ")
 
@@ -203,7 +262,7 @@ class Menu:
 
                 idx = ''
                 while all(
-                    str(j) != idx for j in range(i + 1)
+                    [str(j) != idx for j in range(i + 1)]
                 ):
                     idx = input("Enter student ID to add: ")
 
@@ -227,7 +286,7 @@ class Menu:
 
             idx = ''
             while all(
-                str(j) != idx for j in range(i + 1)
+                [str(j) != idx for j in range(i + 1)]
             ):
                 idx = input("Enter course ID: ")
 
@@ -243,7 +302,7 @@ class Menu:
 
                 idx = ''
                 while all(
-                    str(j) != idx for j in range(i + 1)
+                    [str(j) != idx for j in range(i + 1)]
                 ):
                     idx = input("Enter student ID: ")
 
@@ -257,3 +316,7 @@ class Menu:
                 print("No students attend this course.")
         else:
             print("You lead no courses, add some through menu.")
+
+    def show_stat(self):
+        table = pd.DataFrame(self.__cur_user.grades)
+        print(table)

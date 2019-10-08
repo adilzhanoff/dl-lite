@@ -297,5 +297,70 @@ class Database:
                 f"{tchr.surname}_{tchr.name}_{course}'"
             )
 
-    def update_student(std):
-        pass
+    def get_stat(self, tchr):
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            courses = cur.execute(
+                """
+                PRAGMA table_info(""" +
+                f"{tchr.surname}_{tchr.name}_t)"
+            ).fetchall()
+            courses = [elem[1] for elem in courses[1:]]
+            grades = cur.execute(
+                """
+                SELECT
+                    *
+                FROM
+                    """ +
+                f"{tchr.surname}_{tchr.name}_t"
+            ).fetchall()
+            stat = {
+                sub: {
+                    elem[0]: elem[courses.index(sub) + 1]
+                    for elem in grades
+                } for sub in courses
+            }
+            return stat
+
+    def set_mark(self, tchr, surname, name, course, mark):
+        """
+        sets mark to 'mark' to student
+        'surname_name' on the 'course' of 'tchr'
+        """
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            cur.execute(
+                """
+                UPDATE """ +
+                f"{tchr.surname}_{tchr.name}_t" +
+                """ SET `""" +
+                course + """` = """ +
+                f"{mark}" + """ WHERE Name = '""" +
+                f"{surname}_{name}'"
+            )
+            cur.execute(
+                """
+                UPDATE """ +
+                f"{surname}_{name}_s" +
+                """ SET Grade = """ +
+                f"{mark}" + """ WHERE Course = '""" +
+                f"{tchr.surname}_{tchr.name}_{course}'"
+            )
+
+    def get_grades(self, stud):
+        """
+        returns grades of 'stud'
+        as a dictionary
+        """
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            grades = cur.execute(
+                """
+                SELECT
+                    *
+                FROM
+                    """ +
+                f"{stud.surname}_{stud.name}_s"
+            ).fetchall()
+            grades = dict(grades)
+            return grades
