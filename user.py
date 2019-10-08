@@ -1,9 +1,12 @@
 class User:
-    def __init__(self, name, surname, subjects=[], grades={}):
+    def __init__(
+            self, name, surname, subjects=[], grades={}, tasks={}
+    ):
         self.__name = name
         self.__surname = surname
         self.__subjects = subjects
         self.__grades = grades
+        self.__tasks = tasks
 
     @property
     def name(self):
@@ -20,6 +23,14 @@ class User:
     @surname.setter
     def surname(self, surname):
         self.__surname = surname
+
+    @property
+    def tasks(self):
+        return self.__tasks
+
+    @tasks.setter
+    def tasks(self, tasks):
+        self.__tasks = tasks
 
     @property
     def subjects(self):
