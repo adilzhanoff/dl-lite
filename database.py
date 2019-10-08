@@ -74,6 +74,7 @@ class Database:
                     CREATE TABLE """ + table_name + """ (
                         Course text,
                         Grade real,
+                        Path text,
                         UNIQUE(Course)
                     )
                     """
@@ -270,7 +271,8 @@ class Database:
                 """ WHERE `""" +
                 course + """` IS NOT NULL
                 """
-            )
+            ).fetchall()
+            return students
 
     def pop_student(self, tchr, surname, name, course):
         """
@@ -357,7 +359,7 @@ class Database:
             grades = cur.execute(
                 """
                 SELECT
-                    *
+                    Course, Grade
                 FROM
                     """ +
                 f"{stud.surname}_{stud.name}_s"
@@ -394,3 +396,30 @@ class Database:
                 course + """'"""
             ).fetchall()
             return tasks
+
+    def submit_path(self, stud, course, path):
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            cur.execute(
+                """
+                UPDATE
+                    """ +
+                f"{stud.surname}_{stud.name}_s" +
+                """ SET Path = '""" +
+                path + """' WHERE Course = '""" +
+                course + "'"
+            )
+
+    def get_path(self, surname, name, course):
+        with sql.connect(self.__db_name) as self.__db:
+            cur = self.__db.cursor()
+            path = cur.execute(
+                """
+                SELECT
+                    Path
+                FROM """ +
+                f"{surname}_{name}_s" +
+                """ WHERE Course = '""" +
+                course + "'"
+            ).fetchall()
+            return path

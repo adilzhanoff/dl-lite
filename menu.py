@@ -13,7 +13,7 @@ class Menu:
     def __init__(self):
         self.__data = Database()
         self.__cur_user = None
-        self.__edit = Editor()
+        # self.__edit = Editor()
 
     def run(self):
         choice = ''
@@ -161,6 +161,24 @@ class Menu:
         )[0][0]
         print(task)
 
+        choice = ''
+        while '1' != choice != '2':
+            choice = input(
+                "1 - Submit new file\n" +
+                "2 - Back to menu\n"
+            )
+
+        if choice == '1':
+            tmp = Editor([])
+            tmp.write_script()
+            sub = self.__cur_user.subjects[int(idx) - 1][0]
+            res = tmp.run_script(
+                f"{self.__cur_user.surname}_{self.__cur_user.name}_" + sub
+            )
+            self.__data.submit_path(self.__cur_user, sub, res[1])
+        else:
+            pass
+
     def menu_teacher(self):
         print(f"Welcome, {self.__cur_user.name}!")
         choice = ''
@@ -176,7 +194,6 @@ class Menu:
                 "6 - Home assignment\n" +
                 "7 - See the statistics\n" +
                 "8 - Log out\n"
-                # TODO home tasks
                 # TODO in-terminal code editor
             )
 
@@ -375,7 +392,28 @@ class Menu:
                 self.__cur_user, self.__cur_user.subjects[int(idx) - 1], desc
             )
         elif choice == '2':
-            pass
+            students = self.__data.course_students(
+                self.__cur_user, self.__cur_user.subjects[int(idx) - 1]
+            )
+            for i, stud in enumerate(students):
+                print(i + 1, stud[0], sep=" - ")
+
+            jdx = ''
+            while all(
+                [str(k + 1) != jdx for k in range(len(students))]
+            ):
+                jdx = input("Enter student ID: ")
+
+            course = str(
+                f"{self.__cur_user.surname}_{self.__cur_user.name}_" +
+                self.__cur_user.subjects[int(idx) - 1]
+            )
+            path = self.__data.get_path(
+                students[int(jdx) - 1][0].split('_')[0],
+                students[int(jdx) - 1][0].split('_')[1], course
+            )[0][0]
+            if path is not None:
+                exec(open("Hometasks\\" + path).read())
 
     def show_stat(self):
         self.__cur_user.grades = self.__data.get_stat(self.__cur_user)
