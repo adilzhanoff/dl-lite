@@ -97,8 +97,9 @@ class Menu:
         grades = self.__cur_user.grades.copy()
         grades = ((k, v) for k, v in grades.items())
         table = pd.DataFrame(
-            grades, columns=("Course", "Grade"), index=(1, 2)
+            grades, columns=("Course", "Grade")
         ).T
+        table.fillna(value='-', inplace=True)
         print(table.T)
 
     def show_teachers(self):
@@ -215,8 +216,7 @@ class Menu:
             course = tuple(grades.keys())[int(idx)]
             info = grades[course]
             for i, stud in enumerate(info):
-                if info[stud] is not None:
-                    print(i, stud, sep=" - ")
+                print(i, stud, sep=" - ")
 
             jdx = ''
             while all(
@@ -318,5 +318,7 @@ class Menu:
             print("You lead no courses, add some through menu.")
 
     def show_stat(self):
+        self.__cur_user.grades = self.__data.get_stat(self.__cur_user)
         table = pd.DataFrame(self.__cur_user.grades)
+        table.fillna(value='-', inplace=True)
         print(table)
